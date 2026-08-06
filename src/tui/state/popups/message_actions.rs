@@ -173,7 +173,6 @@ impl DashboardState {
                         ComposerLock::MessageLoadFailed => "message load failed".to_owned(),
                         ComposerLock::Spam => "spam channel blocked".to_owned(),
                         ComposerLock::MessageRequest => "accept message request first".to_owned(),
-                        ComposerLock::NewConversation => "start conversation first".to_owned(),
                         ComposerLock::EmptyChannel => "no messages yet".to_owned(),
                         ComposerLock::SlowMode { remaining_seconds } => {
                             format!("slow mode, wait {remaining_seconds}s")

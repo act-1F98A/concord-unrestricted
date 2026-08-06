@@ -52,7 +52,6 @@ pub enum ComposerLock {
     MessageLoadFailed,
     Spam,
     MessageRequest,
-    NewConversation,
     EmptyChannel,
     SlowMode { remaining_seconds: u64 },
     Verification(GuildParticipationBlock),
@@ -423,18 +422,7 @@ impl DashboardState {
             {
                 return None;
             }
-            let Some(current_user_id) = self.current_user_id() else {
-                return Some(ComposerLock::NewConversation);
-            };
-            if self
-                .discord
-                .cache
-                .channel_cached_message_count_from(channel.id, current_user_id)
-                >= MINIMUM_ESTABLISHED_DM_MESSAGES
-            {
-                return None;
-            }
-            return Some(ComposerLock::NewConversation);
+            return None;
         }
 
         if channel.guild_id.is_none() || !self.discord.cache.can_send_in_channel(channel) {

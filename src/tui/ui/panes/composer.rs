@@ -995,11 +995,6 @@ pub(in crate::tui::ui) fn composer_text(state: &DashboardState, width: u16) -> S
                         "read-only · {label} is a message request. accept it in the official app first"
                     )
                 }
-                ComposerLock::NewConversation => {
-                    format!(
-                        "read-only · {label} is a new conversation. send at least {MINIMUM_ESTABLISHED_DM_MESSAGES} messages in the official app first"
-                    )
-                }
                 ComposerLock::EmptyChannel => {
                     format!(
                         "read-only · {label} has no messages. start it in the official app first"

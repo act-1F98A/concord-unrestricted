@@ -149,52 +149,6 @@ fn group_dm_unlocks_after_message_history_loads() {
 fn existing_dm_requires_five_current_user_messages_before_unlocking() {
     let state_before_history = || selected_dm_state(Some(Id::new(200)), UiStateOptions::default());
 
-    let mut established = state_before_history();
-    assert_eq!(
-        established.composer_lock(),
-        Some(ComposerLock::LoadingMessages)
-    );
-    established.push_event(latest_history_loaded(
-        Id::new(20),
-        (196..=200)
-            .map(|message_id| dm_history_message(message_id, 1))
-            .collect(),
-    ));
-    assert_eq!(established.composer_lock(), None);
-    assert_eq!(
-        established
-            .take_ui_state_save_request()
-            .expect("established DM should request persistence")
-            .established_dms,
-        vec![Id::new(20)]
-    );
-
-    let mut new_conversation = state_before_history();
-    new_conversation.push_event(latest_history_loaded(
-        Id::new(20),
-        vec![
-            dm_history_message(196, 1),
-            dm_history_message(197, 1),
-            dm_history_message(198, 1),
-            dm_history_message(199, 1),
-            dm_history_message(200, 99),
-        ],
-    ));
-    assert_eq!(
-        new_conversation.composer_lock(),
-        Some(ComposerLock::NewConversation)
-    );
-
-    new_conversation.push_event(message_create_event(MessageCreateFixture {
-        guild_id: None,
-        channel_id: Id::new(20),
-        message_id: Id::new(201),
-        author_id: Id::new(1),
-        content: Some("hello".to_owned()),
-        ..guild_message_create_fixture()
-    }));
-    assert_eq!(new_conversation.composer_lock(), None);
-
     let mut restored = selected_dm_state(
         Some(Id::new(200)),
         UiStateOptions {
