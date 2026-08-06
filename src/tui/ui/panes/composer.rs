@@ -987,7 +987,7 @@ pub(in crate::tui::ui) fn composer_text(state: &DashboardState, width: u16) -> S
                 }
                 ComposerLock::Spam => {
                     format!(
-                        "read-only · {label} is flagged as spam. open it in the official app first"
+                        "read-only · {label} is flagged as spam. open it in the official app"
                     )
                 }
                 ComposerLock::MessageRequest => {
