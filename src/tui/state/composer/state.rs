@@ -414,14 +414,6 @@ impl DashboardState {
             if channel.last_message_id.is_none() && !has_cached_messages {
                 return Some(ComposerLock::EmptyChannel);
             }
-            if self
-                .navigation
-                .channels
-                .established_dms
-                .contains(&channel.id)
-            {
-                return None;
-            }
             return None;
         }
 
