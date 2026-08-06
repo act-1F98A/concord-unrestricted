@@ -25,11 +25,11 @@ git clean -fdx
 
 if git show-ref --verify --quiet refs/heads/work; then
 	if [[ "$(git branch --show-current)" == "work" ]]; then
-        git switch --detach "$UPSTREAM_REF"
+        git switch --detach "$UPSTREAM_REF_COMMIT"
     fi
 	git branch -D work
 fi
-git switch -c work "$UPSTREAM_REF"
+git switch -c work "$UPSTREAM_REF_COMMIT"
 
 
 git am "$script_path/../patches/"*.patch

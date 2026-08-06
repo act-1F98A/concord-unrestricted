@@ -16,4 +16,4 @@ rm -rf ../../patches.bak
 mv ../../patches ../../patches.bak
 mkdir -p ../../patches
 
-git format-patch "$UPSTREAM_REF" -o ../../patches
+git format-patch "$UPSTREAM_REF_COMMIT" -o ../../patches
