@@ -52,7 +52,6 @@ pub enum ComposerLock {
     MessageLoadFailed,
     Spam,
     MessageRequest,
-    EmptyChannel,
     SlowMode { remaining_seconds: u64 },
     Verification(GuildParticipationBlock),
 }
@@ -411,9 +410,6 @@ impl DashboardState {
             if channel.is_message_request == Some(true) {
                 return Some(ComposerLock::MessageRequest);
             }
-            if channel.last_message_id.is_none() && !has_cached_messages {
-                return Some(ComposerLock::EmptyChannel);
-            }
             return None;
         }
 
@@ -426,16 +422,8 @@ impl DashboardState {
         if let Some(remaining_seconds) = self.slow_mode_remaining_seconds(channel.id) {
             return Some(ComposerLock::SlowMode { remaining_seconds });
         }
-        // Threads can report counts even when no last message is cached. Those
-        // fields prove that a server conversation already exists.
-        if channel.message_count.is_some_and(|count| count > 0)
-            || channel.total_message_sent.is_some_and(|count| count > 0)
-            || has_cached_messages
-        {
-            return None;
-        }
 
-        Some(ComposerLock::EmptyChannel)
+        return None;
     }
 
     pub(in crate::tui::state) fn record_slow_mode_deadline(

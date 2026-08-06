@@ -995,11 +995,6 @@ pub(in crate::tui::ui) fn composer_text(state: &DashboardState, width: u16) -> S
                         "read-only · {label} is a message request. accept it in the official app first"
                     )
                 }
-                ComposerLock::EmptyChannel => {
-                    format!(
-                        "read-only · {label} has no messages. start it in the official app first"
-                    )
-                }
                 ComposerLock::SlowMode { remaining_seconds } => {
                     format!("slowmode · wait {remaining_seconds}s before writing in {label}")
                 }

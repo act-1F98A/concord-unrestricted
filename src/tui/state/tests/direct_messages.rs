@@ -119,16 +119,6 @@ fn restoring_discord_snapshot_recovers_missed_guilds_and_direct_messages() {
 }
 
 #[test]
-fn empty_dm_locks_the_composer_before_the_first_message() {
-    let mut state = selected_dm_state(None, UiStateOptions::default());
-
-    assert_eq!(state.composer_lock(), Some(ComposerLock::LoadingMessages));
-
-    state.push_event(latest_history_loaded(Id::new(20), Vec::new()));
-    assert_eq!(state.composer_lock(), Some(ComposerLock::EmptyChannel));
-}
-
-#[test]
 fn group_dm_unlocks_after_message_history_loads() {
     let mut state = DashboardState::new();
     state.push_event(AppEvent::ChannelUpsert(ChannelInfo {
