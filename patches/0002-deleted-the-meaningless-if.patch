@@ -1,0 +1,31 @@
+From c86c42bbfc47a8fdf4f8d3b6eeb142efbf36517b Mon Sep 17 00:00:00 2001
+From: Act <pavlik4a@gmail.com>
+Date: Thu, 6 Aug 2026 04:25:15 +0300
+Subject: [PATCH 2/6] deleted the meaningless if
+
+---
+ src/tui/state/composer/state.rs | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/src/tui/state/composer/state.rs b/src/tui/state/composer/state.rs
+index a421aa8..ef8e964 100644
+--- a/src/tui/state/composer/state.rs
++++ b/src/tui/state/composer/state.rs
+@@ -414,14 +414,6 @@ impl DashboardState {
+             if channel.last_message_id.is_none() && !has_cached_messages {
+                 return Some(ComposerLock::EmptyChannel);
+             }
+-            if self
+-                .navigation
+-                .channels
+-                .established_dms
+-                .contains(&channel.id)
+-            {
+-                return None;
+-            }
+             return None;
+         }
+ 
+-- 
+2.55.0
+

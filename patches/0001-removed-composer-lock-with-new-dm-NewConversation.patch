@@ -1,0 +1,132 @@
+From f8d821555f344b517eaeabed3874e60af4781769 Mon Sep 17 00:00:00 2001
+From: Act <pavlik4a@gmail.com>
+Date: Thu, 6 Aug 2026 04:11:17 +0300
+Subject: [PATCH 1/6] removed composer lock with new dm (NewConversation)
+
+---
+ src/tui/state/composer/state.rs         | 14 +-------
+ src/tui/state/popups/message_actions.rs |  1 -
+ src/tui/state/tests/direct_messages.rs  | 46 -------------------------
+ src/tui/ui/panes/composer.rs            |  5 ---
+ 4 files changed, 1 insertion(+), 65 deletions(-)
+
+diff --git a/src/tui/state/composer/state.rs b/src/tui/state/composer/state.rs
+index 05dc248..a421aa8 100644
+--- a/src/tui/state/composer/state.rs
++++ b/src/tui/state/composer/state.rs
+@@ -52,7 +52,6 @@ pub enum ComposerLock {
+     MessageLoadFailed,
+     Spam,
+     MessageRequest,
+-    NewConversation,
+     EmptyChannel,
+     SlowMode { remaining_seconds: u64 },
+     Verification(GuildParticipationBlock),
+@@ -423,18 +422,7 @@ impl DashboardState {
+             {
+                 return None;
+             }
+-            let Some(current_user_id) = self.current_user_id() else {
+-                return Some(ComposerLock::NewConversation);
+-            };
+-            if self
+-                .discord
+-                .cache
+-                .channel_cached_message_count_from(channel.id, current_user_id)
+-                >= MINIMUM_ESTABLISHED_DM_MESSAGES
+-            {
+-                return None;
+-            }
+-            return Some(ComposerLock::NewConversation);
++            return None;
+         }
+ 
+         if channel.guild_id.is_none() || !self.discord.cache.can_send_in_channel(channel) {
+diff --git a/src/tui/state/popups/message_actions.rs b/src/tui/state/popups/message_actions.rs
+index f3be147..cd54fa7 100644
+--- a/src/tui/state/popups/message_actions.rs
++++ b/src/tui/state/popups/message_actions.rs
+@@ -173,7 +173,6 @@ impl DashboardState {
+                         ComposerLock::MessageLoadFailed => "message load failed".to_owned(),
+                         ComposerLock::Spam => "spam channel blocked".to_owned(),
+                         ComposerLock::MessageRequest => "accept message request first".to_owned(),
+-                        ComposerLock::NewConversation => "start conversation first".to_owned(),
+                         ComposerLock::EmptyChannel => "no messages yet".to_owned(),
+                         ComposerLock::SlowMode { remaining_seconds } => {
+                             format!("slow mode, wait {remaining_seconds}s")
+diff --git a/src/tui/state/tests/direct_messages.rs b/src/tui/state/tests/direct_messages.rs
+index 1d4e61b..f6620e5 100644
+--- a/src/tui/state/tests/direct_messages.rs
++++ b/src/tui/state/tests/direct_messages.rs
+@@ -149,52 +149,6 @@ fn group_dm_unlocks_after_message_history_loads() {
+ fn existing_dm_requires_five_current_user_messages_before_unlocking() {
+     let state_before_history = || selected_dm_state(Some(Id::new(200)), UiStateOptions::default());
+ 
+-    let mut established = state_before_history();
+-    assert_eq!(
+-        established.composer_lock(),
+-        Some(ComposerLock::LoadingMessages)
+-    );
+-    established.push_event(latest_history_loaded(
+-        Id::new(20),
+-        (196..=200)
+-            .map(|message_id| dm_history_message(message_id, 1))
+-            .collect(),
+-    ));
+-    assert_eq!(established.composer_lock(), None);
+-    assert_eq!(
+-        established
+-            .take_ui_state_save_request()
+-            .expect("established DM should request persistence")
+-            .established_dms,
+-        vec![Id::new(20)]
+-    );
+-
+-    let mut new_conversation = state_before_history();
+-    new_conversation.push_event(latest_history_loaded(
+-        Id::new(20),
+-        vec![
+-            dm_history_message(196, 1),
+-            dm_history_message(197, 1),
+-            dm_history_message(198, 1),
+-            dm_history_message(199, 1),
+-            dm_history_message(200, 99),
+-        ],
+-    ));
+-    assert_eq!(
+-        new_conversation.composer_lock(),
+-        Some(ComposerLock::NewConversation)
+-    );
+-
+-    new_conversation.push_event(message_create_event(MessageCreateFixture {
+-        guild_id: None,
+-        channel_id: Id::new(20),
+-        message_id: Id::new(201),
+-        author_id: Id::new(1),
+-        content: Some("hello".to_owned()),
+-        ..guild_message_create_fixture()
+-    }));
+-    assert_eq!(new_conversation.composer_lock(), None);
+-
+     let mut restored = selected_dm_state(
+         Some(Id::new(200)),
+         UiStateOptions {
+diff --git a/src/tui/ui/panes/composer.rs b/src/tui/ui/panes/composer.rs
+index 800e3f6..6537c62 100644
+--- a/src/tui/ui/panes/composer.rs
++++ b/src/tui/ui/panes/composer.rs
+@@ -995,11 +995,6 @@ pub(in crate::tui::ui) fn composer_text(state: &DashboardState, width: u16) -> S
+                         "read-only · {label} is a message request. accept it in the official app first"
+                     )
+                 }
+-                ComposerLock::NewConversation => {
+-                    format!(
+-                        "read-only · {label} is a new conversation. send at least {MINIMUM_ESTABLISHED_DM_MESSAGES} messages in the official app first"
+-                    )
+-                }
+                 ComposerLock::EmptyChannel => {
+                     format!(
+                         "read-only · {label} has no messages. start it in the official app first"
+-- 
+2.55.0
+

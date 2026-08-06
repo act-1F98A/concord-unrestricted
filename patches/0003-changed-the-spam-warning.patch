@@ -1,0 +1,25 @@
+From 5d4e46f8c77f567979325a38c7a6d34b6977c7e2 Mon Sep 17 00:00:00 2001
+From: Act <pavlik4a@gmail.com>
+Date: Thu, 6 Aug 2026 04:37:44 +0300
+Subject: [PATCH 3/6] changed the spam warning
+
+---
+ src/tui/ui/panes/composer.rs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/tui/ui/panes/composer.rs b/src/tui/ui/panes/composer.rs
+index 6537c62..a5b7cec 100644
+--- a/src/tui/ui/panes/composer.rs
++++ b/src/tui/ui/panes/composer.rs
+@@ -987,7 +987,7 @@ pub(in crate::tui::ui) fn composer_text(state: &DashboardState, width: u16) -> S
+                 }
+                 ComposerLock::Spam => {
+                     format!(
+-                        "read-only · {label} is flagged as spam. open it in the official app first"
++                        "read-only · {label} is flagged as spam. open it in the official app"
+                     )
+                 }
+                 ComposerLock::MessageRequest => {
+-- 
+2.55.0
+

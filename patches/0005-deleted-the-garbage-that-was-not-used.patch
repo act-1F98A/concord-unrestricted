@@ -1,0 +1,79 @@
+From eeda9250cb85bb77d394d3d1099023290aaf8561 Mon Sep 17 00:00:00 2001
+From: Act <pavlik4a@gmail.com>
+Date: Thu, 6 Aug 2026 05:45:57 +0300
+Subject: [PATCH 5/6] deleted the garbage that was not used
+
+---
+ src/discord/message/state.rs    | 23 -----------------------
+ src/tui/state/composer/state.rs |  3 ---
+ src/tui/ui/panes/composer.rs    |  1 -
+ 3 files changed, 27 deletions(-)
+
+diff --git a/src/discord/message/state.rs b/src/discord/message/state.rs
+index 9107d10..2dd9b32 100644
+--- a/src/discord/message/state.rs
++++ b/src/discord/message/state.rs
+@@ -262,29 +262,6 @@ impl DiscordState {
+             .unwrap_or_default()
+     }
+ 
+-    pub(crate) fn channel_has_cached_messages(&self, channel_id: Id<ChannelMarker>) -> bool {
+-        self.message_cache
+-            .messages
+-            .get(&channel_id)
+-            .is_some_and(|messages| !messages.is_empty())
+-    }
+-
+-    pub(crate) fn channel_cached_message_count_from(
+-        &self,
+-        channel_id: Id<ChannelMarker>,
+-        author_id: Id<UserMarker>,
+-    ) -> usize {
+-        self.message_cache
+-            .messages
+-            .get(&channel_id)
+-            .map_or(0, |messages| {
+-                messages
+-                    .iter()
+-                    .filter(|message| message.author_id == author_id)
+-                    .count()
+-            })
+-    }
+-
+     pub fn message_history_gap_after(
+         &self,
+         channel_id: Id<ChannelMarker>,
+diff --git a/src/tui/state/composer/state.rs b/src/tui/state/composer/state.rs
+index bf36eef..9d72333 100644
+--- a/src/tui/state/composer/state.rs
++++ b/src/tui/state/composer/state.rs
+@@ -21,7 +21,6 @@ use crate::discord::{
+     parsed_application_command_option_names,
+ };
+ 
+-use super::super::MINIMUM_ESTABLISHED_DM_MESSAGES;
+ use super::super::local_upload_preview::{
+     LocalUploadPreviewState, LocalUploadPreviewStatus, local_upload_preview_candidate,
+     local_upload_preview_view,
+@@ -401,8 +400,6 @@ impl DashboardState {
+             LatestMessageHistoryState::Loaded => {}
+         }
+ 
+-        let has_cached_messages = self.discord.cache.channel_has_cached_messages(channel.id);
+-
+         if channel.is_dm() {
+             if channel.is_spam == Some(true) {
+                 return Some(ComposerLock::Spam);
+diff --git a/src/tui/ui/panes/composer.rs b/src/tui/ui/panes/composer.rs
+index 8a259e6..aafa6f2 100644
+--- a/src/tui/ui/panes/composer.rs
++++ b/src/tui/ui/panes/composer.rs
+@@ -1,5 +1,4 @@
+ use super::*;
+-use crate::tui::state::MINIMUM_ESTABLISHED_DM_MESSAGES;
+ use crate::tui::ui::emoji_overlay::{EmojiSlot, overlay_emoji_column, overlay_emoji_slots};
+ 
+ pub(in crate::tui::ui) fn render_composer(
+-- 
+2.55.0
+

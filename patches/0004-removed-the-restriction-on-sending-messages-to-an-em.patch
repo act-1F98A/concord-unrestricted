@@ -1,0 +1,155 @@
+From 1af3d67e52a5137aa8a0bfea309c8e77ecb9498a Mon Sep 17 00:00:00 2001
+From: Act <pavlik4a@gmail.com>
+Date: Thu, 6 Aug 2026 04:48:14 +0300
+Subject: [PATCH 4/6] removed the restriction on sending messages to an empty
+ channel
+
+---
+ src/tui/state/composer/state.rs         | 14 +--------
+ src/tui/state/popups/message_actions.rs |  1 -
+ src/tui/state/tests/composer.rs         | 38 -------------------------
+ src/tui/state/tests/direct_messages.rs  | 10 -------
+ src/tui/ui/panes/composer.rs            |  5 ----
+ 5 files changed, 1 insertion(+), 67 deletions(-)
+
+diff --git a/src/tui/state/composer/state.rs b/src/tui/state/composer/state.rs
+index ef8e964..bf36eef 100644
+--- a/src/tui/state/composer/state.rs
++++ b/src/tui/state/composer/state.rs
+@@ -52,7 +52,6 @@ pub enum ComposerLock {
+     MessageLoadFailed,
+     Spam,
+     MessageRequest,
+-    EmptyChannel,
+     SlowMode { remaining_seconds: u64 },
+     Verification(GuildParticipationBlock),
+ }
+@@ -411,9 +410,6 @@ impl DashboardState {
+             if channel.is_message_request == Some(true) {
+                 return Some(ComposerLock::MessageRequest);
+             }
+-            if channel.last_message_id.is_none() && !has_cached_messages {
+-                return Some(ComposerLock::EmptyChannel);
+-            }
+             return None;
+         }
+ 
+@@ -426,16 +422,8 @@ impl DashboardState {
+         if let Some(remaining_seconds) = self.slow_mode_remaining_seconds(channel.id) {
+             return Some(ComposerLock::SlowMode { remaining_seconds });
+         }
+-        // Threads can report counts even when no last message is cached. Those
+-        // fields prove that a server conversation already exists.
+-        if channel.message_count.is_some_and(|count| count > 0)
+-            || channel.total_message_sent.is_some_and(|count| count > 0)
+-            || has_cached_messages
+-        {
+-            return None;
+-        }
+ 
+-        Some(ComposerLock::EmptyChannel)
++        return None;
+     }
+ 
+     pub(in crate::tui::state) fn record_slow_mode_deadline(
+diff --git a/src/tui/state/popups/message_actions.rs b/src/tui/state/popups/message_actions.rs
+index cd54fa7..2477db9 100644
+--- a/src/tui/state/popups/message_actions.rs
++++ b/src/tui/state/popups/message_actions.rs
+@@ -173,7 +173,6 @@ impl DashboardState {
+                         ComposerLock::MessageLoadFailed => "message load failed".to_owned(),
+                         ComposerLock::Spam => "spam channel blocked".to_owned(),
+                         ComposerLock::MessageRequest => "accept message request first".to_owned(),
+-                        ComposerLock::EmptyChannel => "no messages yet".to_owned(),
+                         ComposerLock::SlowMode { remaining_seconds } => {
+                             format!("slow mode, wait {remaining_seconds}s")
+                         }
+diff --git a/src/tui/state/tests/composer.rs b/src/tui/state/tests/composer.rs
+index e808a37..518c6fe 100644
+--- a/src/tui/state/tests/composer.rs
++++ b/src/tui/state/tests/composer.rs
+@@ -175,44 +175,6 @@ fn state_with_application_command(command: ApplicationCommandInfo) -> DashboardS
+     state
+ }
+ 
+-#[test]
+-fn empty_guild_channel_locks_until_a_message_exists() {
+-    let mut state = guild_state_with_overwrites(Vec::new(), None);
+-
+-    assert_eq!(state.composer_lock(), Some(ComposerLock::LoadingMessages));
+-    assert!(!state.can_send_in_selected_channel());
+-
+-    state.push_event(AppEvent::MessageHistoryLoadFailed {
+-        channel_id: Id::new(2),
+-        target: crate::discord::MessageHistoryLoadTarget::Latest,
+-        message: "offline".to_owned(),
+-    });
+-    assert_eq!(state.composer_lock(), Some(ComposerLock::MessageLoadFailed));
+-
+-    state.push_event(latest_history_loaded(Id::new(2), Vec::new()));
+-    assert_eq!(state.composer_lock(), Some(ComposerLock::EmptyChannel));
+-    assert!(!state.can_send_in_selected_channel());
+-
+-    state.push_event(message_create_event(MessageCreateFixture {
+-        guild_id: Some(Id::new(1)),
+-        channel_id: Id::new(2),
+-        message_id: Id::new(100),
+-        content: Some("existing message".to_owned()),
+-        ..guild_message_create_fixture()
+-    }));
+-
+-    assert_eq!(state.composer_lock(), None);
+-    assert!(state.can_send_in_selected_channel());
+-
+-    state.push_event(AppEvent::MessageDelete {
+-        guild_id: Some(Id::new(1)),
+-        channel_id: Id::new(2),
+-        message_id: Id::new(100),
+-    });
+-    assert_eq!(state.composer_lock(), Some(ComposerLock::EmptyChannel));
+-    assert!(!state.can_send_in_selected_channel());
+-}
+-
+ fn state_with_forum_post_channel(required_tag: bool) -> DashboardState {
+     state_with_post_parent_channel("forum", required_tag)
+ }
+diff --git a/src/tui/state/tests/direct_messages.rs b/src/tui/state/tests/direct_messages.rs
+index f6620e5..c348cfa 100644
+--- a/src/tui/state/tests/direct_messages.rs
++++ b/src/tui/state/tests/direct_messages.rs
+@@ -118,16 +118,6 @@ fn restoring_discord_snapshot_recovers_missed_guilds_and_direct_messages() {
+     assert_eq!(channel_entry_names(&state), vec!["alice"]);
+ }
+ 
+-#[test]
+-fn empty_dm_locks_the_composer_before_the_first_message() {
+-    let mut state = selected_dm_state(None, UiStateOptions::default());
+-
+-    assert_eq!(state.composer_lock(), Some(ComposerLock::LoadingMessages));
+-
+-    state.push_event(latest_history_loaded(Id::new(20), Vec::new()));
+-    assert_eq!(state.composer_lock(), Some(ComposerLock::EmptyChannel));
+-}
+-
+ #[test]
+ fn group_dm_unlocks_after_message_history_loads() {
+     let mut state = DashboardState::new();
+diff --git a/src/tui/ui/panes/composer.rs b/src/tui/ui/panes/composer.rs
+index a5b7cec..8a259e6 100644
+--- a/src/tui/ui/panes/composer.rs
++++ b/src/tui/ui/panes/composer.rs
+@@ -995,11 +995,6 @@ pub(in crate::tui::ui) fn composer_text(state: &DashboardState, width: u16) -> S
+                         "read-only · {label} is a message request. accept it in the official app first"
+                     )
+                 }
+-                ComposerLock::EmptyChannel => {
+-                    format!(
+-                        "read-only · {label} has no messages. start it in the official app first"
+-                    )
+-                }
+                 ComposerLock::SlowMode { remaining_seconds } => {
+                     format!("slowmode · wait {remaining_seconds}s before writing in {label}")
+                 }
+-- 
+2.55.0
+
