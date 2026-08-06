@@ -21,7 +21,6 @@ use crate::discord::{
     parsed_application_command_option_names,
 };
 
-use super::super::MINIMUM_ESTABLISHED_DM_MESSAGES;
 use super::super::local_upload_preview::{
     LocalUploadPreviewState, LocalUploadPreviewStatus, local_upload_preview_candidate,
     local_upload_preview_view,
@@ -400,8 +399,6 @@ impl DashboardState {
             LatestMessageHistoryState::Failed => return Some(ComposerLock::MessageLoadFailed),
             LatestMessageHistoryState::Loaded => {}
         }
-
-        let has_cached_messages = self.discord.cache.channel_has_cached_messages(channel.id);
 
         if channel.is_dm() {
             if channel.is_spam == Some(true) {

@@ -1,5 +1,4 @@
 use super::*;
-use crate::tui::state::MINIMUM_ESTABLISHED_DM_MESSAGES;
 use crate::tui::ui::emoji_overlay::{EmojiSlot, overlay_emoji_column, overlay_emoji_slots};
 
 pub(in crate::tui::ui) fn render_composer(
