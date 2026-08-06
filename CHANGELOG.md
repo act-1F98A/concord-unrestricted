@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.4-unrestricted.1] - 2026-08-06
+
+### Removed restrictions
+
+- Allow sending the first message in new DMs.
+- Allow sending the first message in empty channels.
+
 ## [2.4.4] - 2026-07-20
 
 ### Bug Fixes
