@@ -10,4 +10,4 @@ scripts/bootstrap.sh
 cd "$UPSTREAM_PATH"
 
 mkdir -p "$TARGET_DIR_REAL"
-CARGO_TARGET_DIR="$TARGET_DIR_REAL" cargo build --release
+RUSTUP_TOOLCHAIN="stable" CARGO_TARGET_DIR="$TARGET_DIR_REAL" cargo build --release
