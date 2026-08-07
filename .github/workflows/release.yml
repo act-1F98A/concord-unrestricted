@@ -16,42 +16,17 @@ jobs:
       - name: Checkout patch repository
         uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            pkg-config \
-            libasound2-dev
-
-
-      - name: run build
+      - name: Upstream patch
         run: |
           chmod +x scripts/*.sh
 
           git config --global user.name "GitHub Actions"
           git config --global user.email "github-actions@github.com"
 
-          ./scripts/build.sh
+          ./scripts/bootstrap.sh
 
-      - name: Create archive
-        run: |
-          mkdir release
 
-          cp target/release/concord release/
-
-          cp README.md release/
-
-          tar -czf concord-linux-x86_64.tar.gz release
-
-          sha256sum concord-linux-x86_64.tar.gz > SHA256SUMS
-
-      - name: Publish Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            concord-linux-x86_64.tar.gz
-            SHA256SUMS
-
+      - name: Launching the original release flow
+        uses: workspace/upstream/.github/workflows/release.yml
+          with:
+            release-version: ${{ github.ref_name }}
