@@ -28,5 +28,5 @@ jobs:
 
       - name: Launching the original release flow
         uses: workspace/upstream/.github/workflows/release.yml
-          with:
-            release-version: ${{ github.ref_name }}
+        with:
+          release-version: ${{ github.ref_name }}
